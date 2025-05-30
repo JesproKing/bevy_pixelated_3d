@@ -1,6 +1,6 @@
 //! Shows how to create graphics that snap to the pixel grid by rendering to a texture in 2D
 
-use bevy::prelude::*;
+use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy_pixelated_3d::*;
 use std::f32::consts::PI;
 
@@ -12,12 +12,13 @@ pub struct ShowSettings{
 
 fn main() {
     App::new()
-    .insert_resource(ClearColor(Color::BLACK))
-    .insert_resource(AmbientLight {
-        color: Color::WHITE,
-        brightness: 500.0,
-    })
     .insert_resource(ShowSettings{value: 0})
+    .add_plugins(DefaultPlugins
+                .set(ImagePlugin::default_nearest())
+                .set(AssetPlugin {
+                    meta_check: AssetMetaCheck::Never,
+                    ..default()
+                }))
         .add_plugins(PixelCamPlugin)
         .add_plugins(PostProcessPlugin)
         .add_plugins(PlayerPlugin)
@@ -95,12 +96,13 @@ fn setup_mesh(
         Mesh3d(meshes.add(Capsule3d::new(0.5,1.0))),
         MeshMaterial3d(materials.add(Color::linear_rgb(0.1,0.5,0.1))),
         Transform::from_xyz(0., 8.,0.).with_scale(Vec3::splat(12.)),
-            Player{
-                x: 0.,
-                y: 0.
-            },
-            PIXEL_PERFECT_LAYERS,
-        ));
+        CameraTarget,
+        Player{
+            x: 0.,
+            y: 0.
+        },
+        PIXEL_PERFECT_LAYERS,
+    ));
 
     commands.spawn((
         DirectionalLight {

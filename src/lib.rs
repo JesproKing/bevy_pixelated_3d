@@ -1,7 +1,5 @@
-mod pixel_cam;
-mod postprocessing;
 mod player;
+mod pixelate;
 
-pub use pixel_cam::*;
-pub use postprocessing::*;
+pub use pixelate::*;
 pub use player::*;

@@ -25,7 +25,7 @@ use bevy::{
             *,
         },
         renderer::{RenderContext, RenderDevice},
-        view::{ViewDepthTexture, ViewTarget},
+        view::{ViewDepthTexture, ViewTarget, ViewUniform, ViewUniforms},
         RenderApp,
     },
 };
@@ -143,6 +143,13 @@ impl ViewNode for PostProcessNode {
 
         let post_process = view_target.post_process_write();
 
+        let Some(view_uniforms) = world.get_resource::<ViewUniforms>() else {
+            return Ok(());
+        };
+        let Some(view_uniform) = view_uniforms.uniforms.binding() else {
+            return Ok(());
+        };
+
         let bind_group = render_context.render_device().create_bind_group(
             "post_process_bind_group",
             &post_process_pipeline.layout,
@@ -155,6 +162,7 @@ impl ViewNode for PostProcessNode {
                 prepass
                     .normal_view()
                     .expect("Make sure to add the NormalPrepass component to your camera"),
+                view_uniform.clone()
             )),
         );
 
@@ -201,6 +209,7 @@ impl FromWorld for PostProcessPipeline {
                     uniform_buffer::<PostProcessSettings>(false),
                     texture_depth_2d(),
                     texture_2d(TextureSampleType::Float { filterable: true }),
+                    uniform_buffer::<ViewUniform>(false).visibility(ShaderStages::VERTEX_FRAGMENT),
                 ),
             ),
         );
@@ -222,7 +231,7 @@ impl FromWorld for PostProcessPipeline {
                     shader_defs: vec![],
                     entry_point: "fragment".into(),
                     targets: vec![Some(ColorTargetState {
-                        format: TextureFormat::bevy_default(),
+                        format: TextureFormat::Rgba16Float,
                         blend: None,
                         write_mask: ColorWrites::ALL,
                     })],
@@ -246,6 +255,4 @@ impl FromWorld for PostProcessPipeline {
 pub struct PostProcessSettings {
     pub show_depth: u32,
     pub show_normals: u32,
-    #[cfg(feature = "webgl2")]
-    _webgl2_padding: Vec3,
 }

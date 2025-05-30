@@ -18,22 +18,15 @@ impl Plugin for PlayerPlugin {
 }
 
 fn player_movement(
-    mut player: Query<(&mut Transform, &mut Player), (With<Player>, Without<PixelCamera>)>,
-    mut cam: Query<(&Camera, &Transform, &mut PixelCamera), With<PixelCamera>>,
+    mut player: Single<(&mut Transform, &mut Player), (With<Player>, Without<PixelCamera>)>,
+    mut cam: Single<(&Camera, &Transform, &mut PixelCamera), With<PixelCamera>>,
     key_input: ResMut<ButtonInput<KeyCode>>,
     time: Res<Time>,
     window: Res<WindowSize>,
 ){
+    let right = cam.1.right().mul_add(Vec3::ONE, Vec3::ZERO);
+    let forward = cam.1.forward().mul_add(Vec3::ONE, Vec3::ZERO).with_y(0.);
 
-    let size = window.texel_size;
-    if size == 0. {
-        return;
-    }
-    let (_camera, cam_t, mut pixelcam) = cam.single_mut();
-    let right = cam_t.right().mul_add(Vec3::ONE, Vec3::ZERO);
-    let up = cam_t.up().mul_add(Vec3::ONE, Vec3::ZERO);
-
-    let (mut p_t, mut p) = player.single_mut();
     let mut dir = Vec3::splat(0.0);
     if key_input.pressed(KeyCode::KeyA) {
         dir.x -= 1.0;
@@ -42,20 +35,14 @@ fn player_movement(
         dir.x += 1.0;
     }
     if key_input.pressed(KeyCode::KeyW) {
-        dir.z += 1.0;
+        dir.y += 1.0;
     }
     if key_input.pressed(KeyCode::KeyS) {
-        dir.z -= 1.0;
+        dir.y -= 1.0;
     }
 
-    let mut pos = Vec3::new(p.x, 13., p.y) + dir.normalize_or_zero() * time.delta_secs() * 50.;
-    p.x = pos.x;
-    p.y = pos.z;
-    let norm = Vec2::new(
-        ((pos/right).x / (size / 3.)).round() * (size / 3.),
-        ((pos/up).z / (size / 3.)).round() * (size / 3.),
-    );
-    pos += Vec3::new(0.,0.,-5.);
-    p_t.translation = Vec3::new(norm.x,13.,norm.y);
-    pixelcam.subpixel_position = Vec2::new((-pos/right).x, (pos/up).z);
+    dir = dir.normalize_or_zero();
+    let mut pos = dir.x * right * time.delta_secs() * 50. + dir.y * forward * time.delta_secs() * 50.;
+    
+    player.0.translation += pos;
 }
