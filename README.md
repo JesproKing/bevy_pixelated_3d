@@ -5,7 +5,9 @@ A project to convert any 3d world into a game that looks like pixelart, with bui
 
 This project makes use of a 3d Camera, with the PixelCamera component. To add objects to the 3d world, just add PIXEL_PERFECT_LAYERS (or RenderLayers::layer(0)) as a component. The resolution of the screen can be set with the constants at the top of pixel_camera.rs (there may be some hardcoded in the shader, not certain.)
 
-The current shader has some half-finished dither and quantization, but those are easy enough to remove by commenting out a single line.
+You can either move the camera itself by editing the subpixel_pos on the PixelCamera, or adding a CameraTarget to an object, which will cause the camera to follow that object.
+
+The current shader can have some quantization, which can be enabled by changing a single line.
 ![image](https://github.com/user-attachments/assets/046cd983-2956-46cb-92cf-0023af5940e1)
 
 Good luck with your projects! I would love to see what you make with this, so feel free to ping me when you showcase it, or if you have any trouble understanding the code.
